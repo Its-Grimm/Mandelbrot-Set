@@ -1,0 +1,7 @@
+Possible Idea:
+Have the program run in Scheme due to its ability to crunch large numbers quickly and efficiently with recursion, 
+Have the Scheme program write the graph points to a file, or have the outputs piped directly into a Python script.
+The Python script then graphs the set, utilizing Pythons graphing libraries (matplotlib, etc)
+
+It would be nice and efficient to pipe the output/math/graph points directly into the Python graphing script.
+It would also be nice for the Scheme code directly call the Python script, but I'm not sure if it has that capacity. 
