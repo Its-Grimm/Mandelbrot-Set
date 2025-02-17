@@ -51,41 +51,59 @@
 ; ...
 ; zn > upper bound, therefore c = 0.4 + 0.1i is outside of the set
 ; The results on the right-hand side would be the points to plot on the graph (0.40x and 0.10y)
+(define out-file (open-output-file "points.txt"))
 
-(define start-mandelbrot
-  (mandelbrot-graph -2.00 0-2.00i)
+(define output-to-file
+  (lambda (out)
+    (let ((formatted-out (string-append (number->string (real-part out)) (if (>= (imag-part out) 0) "+" "") (number->string (imag-part out)) "i")))
+      (write
+	formatted-out
+	out-file
+      )
+      (newline out-file)
+    )
+  )
 )
 
-(define mandelbrot-graph
+(define start-graph 
    ; Start at the bottom left corner, so -2 whatever points when graphing
    (lambda(x y)
       ; x and y will be processed over within the bounds of -2 < x|y < 2
       ; Since x and y both start at -2.00, only bound we have to check is upper bound
-
-      (if (mandelbrot 0+0i x y 0) ; if the points are in the set (true)
+      ;   (mandelbrot z  c	x y counter)
+      ; (set! y (make-rectangular 0+0i (/ (round (* (imag-part y) 100)) 100)))
+      (set! x (/ (round (* x 100)) 100))
+      (set! y (make-rectangular 0+0i (/ (round (* (imag-part y) 100)) 100)))
+      (if (mandelbrot 0 (+ x y) 0 0 0) ; if the points are in the set (true)
 	 (begin
-	    (display "(")
-	    (display (+ x y))
-	    (display ") ")
-	    (display "is part of the mandelbrot set\n")
+	    ;(display (+ x y))
+	    ;(display "\tis part of the mandelbrot set\n")
+	    (output-to-file (+ x y))
 	 )
 	 (display "")
+	 #| (begin |#
+	 #|    (display (+ x y)) |#
+	 #|    (display "is NOT part of the mandelbrot set\n") |#
+	 #| ) |#
       )
 
-      (if (!= x 2.01)
-	 ; if x != +2.00: x moves forwards towards +2.00
-	 (mandelbrot-graph (+ x 0.01) y)
+      ; Advances the recursion
+      (if (< x 2.00)
+	 ; if x < 2.00: x moves forwards towards +2.00
+	 (start-graph (+ x 0.01) y)
 
 	 ; else:
-	 (if (= y (+ x 0+2.01i))
-	    ; if y == +0+2.00i: graphing is finished
-	    (display "Graphing is finished")
-
+	 (if (>= (imag-part y) 2.00)
+	    ; if y == 0+2.00i: graphing is finished since x and y are both at +2.00: exit
+	    (begin
+	       (display "Graphing is finished")
+	       (close-output-port out-file)
+	    )
 	    ; else: 
 	    (begin
 	       ; move x back to the first column (-2.00) and move y up a row
 	       (set! x -2.00)
-	       (mandelbrot-graph x (+ y 0+0.01i))
+	       (start-graph x (+ y 0+0.01i))
 	    )
 	 )
       )
@@ -94,58 +112,73 @@
 
 ; Will be returning true or false if the number is part of the set or not
 (define mandelbrot
-   (lambda (z cx cy counter) 
+   (lambda (z c zx zy counter) 
+      (set! zx (real-part z)) 
+      (set! zy (imag-part z))
+
+      #| (display counter) |#
+      #| (display ": z=") |#
+      #| (display z) |#
+      #| (display "\t\t\tzx=") |#
+      #| (display zx) |#
+      #| (display "\tzy=") |#
+      #| (display zy) |#
+      #| (display "\n") |#
+
       ; At the end of 500 iterations of formula z = z^2 + c if z <= 2
       ; #t if zn <= 2
-
       ; cx = n
       ; cy = 0+ni
+      ; z  = cx+cyi
 
-      ; doing: if (cx > 10000 or cx < -10000) or (cy > cx+10000i or cy < cx-10000i) the hard way 
-      (if (> cx 10000)
-	 ; if cx is out of positive bounds
-	 #f
-	 (display "") 
-      )
-      (if (< cx -10000)
-	 ; if cx is out of negative bounds
-	 #f
-	 (display "") 
-      )
-      (if (> cy (+ cx 0+10000i))
-	 ; if cy is out of positive bounds
-	 #f
-	 (display "") 
-      )
-      (if (< cy (+ cx 0-10000i))
-	 ; if cy is out of negative bounds
-	 #f
-	 (display "") 
-      )
+      ; doing: if ((cx > 500 or cx < -500) or (cy > cx+500i or cy < cx-500i)) )
+      (if (or (or (> zx 500) (< zx -500))
+	      (or (> zy 500) (< zy -500))) 
+	#f
+	#| (begin |#
+	#|   (display "Failed bounds check\n") |#
+	#|   #f |#
+	#| ) |#
+	   
+	; Now that the checks are over, we can start calculating for z. Remember:
+	; z0 =		(0)^2 + (0.4+0.1i) = 0.40+0.10i
+	; z1 = (0.40+0.10i)^2 + (0.4+0.1i) = 0.55+0.18i
+	; z2 = (0.55+0.18i)^2 + (0.4+0.1i) = 0.67+0.30i
+	; z3 = (0.67+0.30i)^2 + (0.4+0.1i) = 0.76+0.50i
+	; ...
+	; ...
+	; ...
+	; zn > upper bound, therefore c = 0.4 + 0.1i is outside of the set
 	 
-      ; Now that the checks are over, we can start calculating for z. Remember:
-      ; z0 =		0^2 + (0.4+0.1i) = 0.40+0.10i
-      ; z1 = (0.40+0.10i)^2 + (0.4+0.1i) = 0.55+0.18i
-      ; z2 = (0.55+0.18i)^2 + (0.4+0.1i) = 0.67+0.30i
-      ; z3 = (0.67+0.30i)^2 + (0.4+0.1i) = 0.76+0.50i
-      ; ...
-      ; ...
-      ; ...
-      ; zn > upper bound, therefore c = 0.4 + 0.1i is outside of the set
-       
-      ; if the count is at the final step and hasn't returned false yet
-      (if (= counter 500)
-	 #t
-	 ; Get the new z for the next iteration, increase counter, and recurse
-	 (begin
-	    (set! z (+ (expt z 2) (+ cx cy)))
-	    ; Rounding Complex Numbers: Revised Report Pg. 24 (imag-num real-num)
-	    (+ counter 1)
-	    (mandelbrot z cx cy counter)
+	; Translating the formula above to the logic below:
+	; z(n+1) = (zx + zy)^2 + (c-real + c-imag)
+	; if the count is at the final step and hasn't returned false yet
+	; (if (= counter 500)
+	(if (= counter 500)
+	   #t
+	   ; Get the new z for the next iteration, increase counter, and recurse
+	   (begin
+	      (set! z (+ (expt z 2) c))
+
+	      ; Rounding Complex Numbers: Revised Report Pg. 24 (imag-num real-num)
+	      (set! z (+ (/ (round (* (real-part  z) 100)) 100) (make-rectangular 0+0i (/ (round (* (imag-part z) 100)) 100))))
+	      (mandelbrot z c zx zy (+ counter 1))
+	   )
 	 )
       )
    )
 )
 
+(define test-it
+  (lambda (zx zy)
+    (display "Starting test with: ")
+    (display (+ zx (make-rectangular 0+0i zy)))
+    (display "\n")
+    (mandelbrot 0 (+ zx (make-rectangular 0+0i zy)) 0 0 0)
+  )
+)
 
+(define start-mandelbrot
+  (start-graph -2.00 0-2.00i)
+)
 
