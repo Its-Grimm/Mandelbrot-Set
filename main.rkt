@@ -72,8 +72,9 @@
       ; Since x and y both start at -2.00, only bound we have to check is upper bound
       ;   (mandelbrot z  c	x y counter)
       ; (set! y (make-rectangular 0+0i (/ (round (* (imag-part y) 100)) 100)))
-      (set! x (/ (round (* x 100)) 100))
-      (set! y (make-rectangular 0+0i (/ (round (* (imag-part y) 100)) 100)))
+
+      (set! x (/ (round (* x 1000)) 1000))
+      (set! y (make-rectangular 0+0i (/ (round (* (imag-part y) 1000)) 1000)))
       (if (mandelbrot 0 (+ x y) 0 0 0) ; if the points are in the set (true)
 	 (begin
 	    ;(display (+ x y))
@@ -88,12 +89,12 @@
       )
 
       ; Advances the recursion
-      (if (< x 2.00)
+      (if (< x 2.000)
 	 ; if x < 2.00: x moves forwards towards +2.00
-	 (start-graph (+ x 0.01) y)
+	 (start-graph (+ x 0.001) y)
 
 	 ; else:
-	 (if (>= (imag-part y) 2.00)
+	 (if (>= (imag-part y) 2.000)
 	    ; if y == 0+2.00i: graphing is finished since x and y are both at +2.00: exit
 	    (begin
 	       (display "Graphing is finished")
@@ -102,8 +103,8 @@
 	    ; else: 
 	    (begin
 	       ; move x back to the first column (-2.00) and move y up a row
-	       (set! x -2.00)
-	       (start-graph x (+ y 0+0.01i))
+	       (set! x -2.000)
+	       (start-graph x (+ y 0+0.001i))
 	    )
 	 )
       )
@@ -131,9 +132,9 @@
       ; cy = 0+ni
       ; z  = cx+cyi
 
-      ; doing: if ((cx > 500 or cx < -500) or (cy > cx+500i or cy < cx-500i)) )
-      (if (or (or (> zx 500) (< zx -500))
-	      (or (> zy 500) (< zy -500))) 
+      ; doing: if ((cx > 10000 or cx < -10000) or (cy > cx+10000i or cy < cx-10000i)) )
+      (if (or (or (> zx 10000) (< zx -10000))
+	      (or (> zy 10000) (< zy -10000))) 
 	#f
 	#| (begin |#
 	#|   (display "Failed bounds check\n") |#
@@ -154,14 +155,14 @@
 	; z(n+1) = (zx + zy)^2 + (c-real + c-imag)
 	; if the count is at the final step and hasn't returned false yet
 	; (if (= counter 500)
-	(if (= counter 500)
+	(if (= counter 1000)
 	   #t
 	   ; Get the new z for the next iteration, increase counter, and recurse
 	   (begin
 	      (set! z (+ (expt z 2) c))
 
 	      ; Rounding Complex Numbers: Revised Report Pg. 24 (imag-num real-num)
-	      (set! z (+ (/ (round (* (real-part  z) 100)) 100) (make-rectangular 0+0i (/ (round (* (imag-part z) 100)) 100))))
+	      (set! z (+ (/ (round (* (real-part  z) 1000)) 1000) (make-rectangular 0+0i (/ (round (* (imag-part z) 1000)) 1000))))
 	      (mandelbrot z c zx zy (+ counter 1))
 	   )
 	 )
@@ -179,6 +180,6 @@
 )
 
 (define start-mandelbrot
-  (start-graph -2.00 0-2.00i)
+  (start-graph -2.000 0-2.000i)
 )
 
